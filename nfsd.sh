@@ -34,12 +34,15 @@ fi
 # Any additional shares MUST be subdirectories of the root directory specified
 # by SHARED_DIRECTORY.
 
-# Check if the SHARED_DIRECTORY_2 variable is empty
-if [ -n "${SHARED_DIRECTORY_2}" ]; then
-  echo "Writing SHARED_DIRECTORY_2 to /etc/exports file"
-  echo "{{SHARED_DIRECTORY_2}} {{PERMITTED}}({{READ_ONLY}},{{SYNC}},no_subtree_check,no_auth_nlm,insecure,no_root_squash)" >> /etc/exports
-  /bin/sed -i "s@{{SHARED_DIRECTORY_2}}@${SHARED_DIRECTORY_2}@g" /etc/exports
-fi
+# Setup additional shares from env vars SHARED_DIRECTORY_* (where * can be anything)
+env | while IFS= read -r line; do
+  name=${line%%=*}
+  value=${line#*=}
+  if [[ $name == SHARED_DIRECTORY_* ]]; then
+    printf "Writing %s (%s) to /etc/exports file\n" "$name" "$value"
+    echo "$value {{PERMITTED}}({{READ_ONLY}},{{SYNC}},no_subtree_check,no_auth_nlm,insecure,no_root_squash)" >> /etc/exports
+  fi
+done
 
 # Check if the PERMITTED variable is empty
 if [ -z "${PERMITTED}" ]; then
