@@ -11,11 +11,11 @@ stop()
   echo "SIGTERM caught, terminating NFS process(es)..."
   /usr/sbin/exportfs -uav
   /usr/sbin/rpc.nfsd 0
-  pid1=`pidof rpc.nfsd`
-  pid2=`pidof rpc.mountd`
+  pid1=$(pidof rpc.nfsd)
+  pid2=$(pidof rpc.mountd)
   # For IPv6 bug:
-  pid3=`pidof rpcbind`
-  kill -TERM $pid1 $pid2 $pid3 > /dev/null 2>&1
+  pid3=$(pidof rpcbind)
+  kill -TERM "$pid1" "$pid2" "$pid3" > /dev/null 2>&1
   echo "Terminated."
   exit
 }
@@ -35,7 +35,7 @@ fi
 # by SHARED_DIRECTORY.
 
 # Check if the SHARED_DIRECTORY_2 variable is empty
-if [ ! -z "${SHARED_DIRECTORY_2}" ]; then
+if [ -n "${SHARED_DIRECTORY_2}" ]; then
   echo "Writing SHARED_DIRECTORY_2 to /etc/exports file"
   echo "{{SHARED_DIRECTORY_2}} {{PERMITTED}}({{READ_ONLY}},{{SYNC}},no_subtree_check,no_auth_nlm,insecure,no_root_squash)" >> /etc/exports
   /bin/sed -i "s@{{SHARED_DIRECTORY_2}}@${SHARED_DIRECTORY_2}@g" /etc/exports
@@ -49,7 +49,7 @@ if [ -z "${PERMITTED}" ]; then
 else
   echo "The PERMITTED environment variable is set."
   echo "The permitted clients are: ${PERMITTED}."
-  /bin/sed -i "s/{{PERMITTED}}/"${PERMITTED}"/g" /etc/exports
+  /bin/sed -i "s/{{PERMITTED}}/""${PERMITTED}""/g" /etc/exports
 fi
 
 # Check if the READ_ONLY variable is set (rather than a null string) using parameter expansion
@@ -84,7 +84,7 @@ IFS=$'\n\t'
 while true; do
 
   # Check if NFS is running by recording it's PID (if it's not running $pid will be null):
-  pid=`pidof rpc.mountd`
+  pid=$(pidof rpc.mountd)
 
   # If $pid is null, do this to start or restart NFS:
   while [ -z "$pid" ]; do
@@ -118,7 +118,7 @@ while true; do
 # --exports-file /etc/exports
 
     # Check if NFS is now running by recording it's PID (if it's not running $pid will be null):
-    pid=`pidof rpc.mountd`
+    pid=$(pidof rpc.mountd)
 
     # If $pid is null, startup failed; log the fact and sleep for 2s
     # We'll then automatically loop through and try again
@@ -139,7 +139,7 @@ done
 while true; do
 
   # Check if NFS is STILL running by recording it's PID (if it's not running $pid will be null):
-  pid=`pidof rpc.mountd`
+  pid=$(pidof rpc.mountd)
   # If it is not, lets kill our PID1 process (this script) by breaking out of this while loop:
   # This ensures Docker observes the failure and handles it as necessary
   if [ -z "$pid" ]; then
